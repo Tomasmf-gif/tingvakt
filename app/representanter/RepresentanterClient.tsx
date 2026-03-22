@@ -119,21 +119,22 @@ export function RepresentanterClient({ mps, parties, counties, initialParty = ''
           <Link
             key={mp.id}
             href={`/representanter/${mp.id}`}
-            className="group flex flex-col items-center text-center bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition cursor-pointer"
+            className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition cursor-pointer h-48"
           >
             <img
               src={mp.photoUrl}
               alt={`${mp.firstName} ${mp.lastName}`}
-              className="w-16 h-16 rounded-full object-cover bg-gray-100 mb-2 border-2 border-white shadow-sm"
+              className="w-full h-32 object-cover object-top"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.firstName + ' ' + mp.lastName)}&size=64&background=e2e8f0&color=64748b`
+                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.firstName + ' ' + mp.lastName)}&size=128&background=e2e8f0&color=64748b`
               }}
             />
-            <p className="text-xs font-semibold text-gray-900 leading-tight">
-              {mp.firstName} {mp.lastName}
-            </p>
-            <p className="text-xs text-gray-500 mt-0.5 truncate w-full">{mp.party}</p>
-            <p className="text-xs text-gray-400 truncate w-full">{mp.county}</p>
+            <div className="p-2 flex-1 min-w-0">
+              <p className="text-xs font-semibold text-gray-900 leading-tight truncate">
+                {mp.firstName} {mp.lastName}
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5 truncate">{mp.party}</p>
+            </div>
           </Link>
         ))}
       </div>

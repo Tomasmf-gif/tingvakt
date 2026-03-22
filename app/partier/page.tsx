@@ -15,7 +15,7 @@ const PARTY_SHORT: Record<string, string> = {
   'Miljøpartiet De Grønne': 'MDG',
 }
 
-const COALITION_PARTIES = ['Arbeiderpartiet', 'Senterpartiet', 'Sosialistisk Venstreparti']
+const COALITION_PARTIES = ['Arbeiderpartiet', 'Senterpartiet']
 
 const PARTY_BLOC: Record<string, string> = {
   'Arbeiderpartiet': 'Rød-grønn',

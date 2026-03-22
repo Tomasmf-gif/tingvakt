@@ -15,6 +15,7 @@ function groupByDate(items: { vote: any; caseTitle: string; caseId: string }[]) 
 }
 
 export default async function VoteringerPage() {
+  try {
   const sessionId = await getCurrentSessionId()
   const recentVotes = await getRecentVotes(sessionId, 60)
   const grouped = groupByDate(recentVotes)
@@ -92,4 +93,7 @@ export default async function VoteringerPage() {
       </div>
     </div>
   )
+  } catch {
+    return <div className="text-center py-16 text-gray-400 text-sm">Kunne ikke laste data. Prøv igjen om litt.</div>
+  }
 }

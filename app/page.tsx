@@ -38,7 +38,7 @@ export default async function HomePage() {
 
   const sortedParties = [...parties].sort((a, b) => b.seats - a.seats)
   const TOTAL_SEATS = 169
-  const COALITION = ['Arbeiderpartiet', 'Senterpartiet', 'Sosialistisk Venstreparti']
+  const COALITION = ['Arbeiderpartiet', 'Senterpartiet']
   const coalitionSeats = parties
     .filter(p => COALITION.includes(p.name))
     .reduce((sum, p) => sum + (p.seats || 0), 0)

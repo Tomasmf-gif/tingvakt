@@ -4,6 +4,7 @@ import { SokClient } from './SokClient'
 export const revalidate = 900
 
 export default async function SokPage() {
+  try {
   const sessionId = await getCurrentSessionId()
   const cases = await getCases(sessionId)
 
@@ -17,4 +18,7 @@ export default async function SokPage() {
       <SokClient cases={cases} />
     </div>
   )
+  } catch {
+    return <div className="text-center py-16 text-gray-400 text-sm">Kunne ikke laste data. Prøv igjen om litt.</div>
+  }
 }

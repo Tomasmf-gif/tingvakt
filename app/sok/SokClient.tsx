@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { Case } from '@/lib/types'
 import { formatShortDate, statusLabel } from '@/lib/utils'
@@ -19,7 +19,14 @@ const STATUS_BADGE: Record<string, string> = {
 }
 
 export function SokClient({ cases }: Props) {
+  const [inputValue, setInputValue] = useState('')
   const [query, setQuery] = useState('')
+
+  // Debounce: update query 300ms after user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => setQuery(inputValue), 300)
+    return () => clearTimeout(timer)
+  }, [inputValue])
 
   const results = useMemo(() => {
     if (!query.trim()) return []
@@ -42,14 +49,14 @@ export function SokClient({ cases }: Props) {
         <input
           type="search"
           placeholder="Skriv inn søkeord, f.eks. «skatt», «helse», «budsjett»..."
-          value={query}
-          onChange={e => setQuery(e.target.value)}
+          value={inputValue}
+          onChange={e => setInputValue(e.target.value)}
           autoFocus
           className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-400 pr-10"
         />
-        {query && (
+        {inputValue && (
           <button
-            onClick={() => setQuery('')}
+            onClick={() => { setInputValue(''); setQuery('') }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
             ✕
@@ -57,13 +64,17 @@ export function SokClient({ cases }: Props) {
         )}
       </div>
 
-      {query && (
+      {query && results.length > 0 && (
         <p className="text-sm text-gray-400 mb-4">
-          {results.length === 0
-            ? 'Ingen treff'
-            : `${results.length} treff${results.length === 50 ? ' (viser 50 første)' : ''}`
-          }
+          {results.length}{results.length === 50 ? '+' : ''} resultater for &apos;{query}&apos;
         </p>
+      )}
+
+      {query && results.length === 0 && (
+        <div className="text-center py-16 text-gray-400">
+          <p className="text-lg font-medium">Ingen resultater</p>
+          <p className="text-sm mt-1">Ingen saker funnet for &apos;{query}&apos;</p>
+        </div>
       )}
 
       {!query && (
@@ -79,7 +90,7 @@ export function SokClient({ cases }: Props) {
           <Link
             key={c.id}
             href={`/saker/${c.id}`}
-            className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition"
+            className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition cursor-pointer"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">

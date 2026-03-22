@@ -114,7 +114,7 @@ export function RepresentanterClient({ mps, parties, counties, initialParty = ''
       <p className="text-sm text-gray-400 mb-4">{filtered.length} representanter</p>
 
       {/* MP grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {filtered.map(mp => (
           <Link
             key={mp.id}

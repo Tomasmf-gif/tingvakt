@@ -10,6 +10,7 @@ export default async function SakerPage({
 }: {
   searchParams: { status?: string; type?: string; committee?: string; q?: string; page?: string }
 }) {
+  try {
   const sessionId = await getCurrentSessionId()
   const [cases, committees] = await Promise.all([
     getCases(sessionId),
@@ -69,7 +70,7 @@ export default async function SakerPage({
         currentQuery={query}
       />
 
-      <p className="text-sm text-gray-400 mb-4 mt-2">{total} saker</p>
+      <p className="text-sm text-gray-400 mb-4 mt-2">Viser {total} av {cases.length} saker</p>
 
       <div className="space-y-2">
         {paginated.map(c => (
@@ -150,4 +151,7 @@ export default async function SakerPage({
       )}
     </div>
   )
+  } catch {
+    return <div className="text-center py-16 text-gray-400">Kunne ikke laste data. Prøv igjen senere.</div>
+  }
 }

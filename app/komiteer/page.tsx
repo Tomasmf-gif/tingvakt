@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getCommittees, getCurrentSessionId, getCases } from '@/lib/stortinget'
+import { getCommittees, getCurrentSessionId, getCases, getCommitteeMembers } from '@/lib/stortinget'
 
 export const revalidate = 3600
 
@@ -19,11 +19,19 @@ const COMMITTEE_DESCRIPTIONS: Record<string, string> = {
 }
 
 export default async function KomiteerPage() {
+  try {
   const sessionId = await getCurrentSessionId()
   const [committees, cases] = await Promise.all([
     getCommittees(sessionId),
     getCases(sessionId),
   ])
+
+  // Fetch member counts in parallel for all committees
+  const memberCounts = await Promise.all(
+    committees.map(c => getCommitteeMembers(c.id, sessionId).then(m => m.length))
+  )
+  const memberCountByCommittee: Record<string, number> = {}
+  committees.forEach((c, i) => { memberCountByCommittee[c.id] = memberCounts[i] })
 
   // Count active cases per committee
   const activeCasesByCommittee: Record<string, number> = {}
@@ -54,17 +62,18 @@ export default async function KomiteerPage() {
           const total = totalCasesByCommittee[c.name] || 0
           const desc = COMMITTEE_DESCRIPTIONS[c.name]
 
+          const memberCount = memberCountByCommittee[c.id] || 0
           return (
             <Link
               key={c.id}
               href={`/komiteer/${c.id}`}
-              className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition"
+              className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition cursor-pointer"
             >
               <h3 className="font-bold text-gray-900 mb-2 leading-snug">{c.name}</h3>
               {desc && (
                 <p className="text-xs text-gray-500 mb-3 leading-relaxed">{desc}</p>
               )}
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-4 text-sm flex-wrap">
                 {active > 0 && (
                   <div className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
@@ -73,6 +82,9 @@ export default async function KomiteerPage() {
                 )}
                 {total > 0 && (
                   <span className="text-gray-400">{total} saker totalt</span>
+                )}
+                {memberCount > 0 && (
+                  <span className="text-gray-400">{memberCount} medlemmer</span>
                 )}
                 {total === 0 && active === 0 && (
                   <span className="text-gray-300 text-xs">Ingen saker registrert</span>
@@ -96,4 +108,7 @@ export default async function KomiteerPage() {
       </div>
     </div>
   )
+  } catch {
+    return <div className="text-center py-16 text-gray-400">Kunne ikke laste data. Prøv igjen senere.</div>
+  }
 }

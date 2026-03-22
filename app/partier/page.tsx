@@ -15,6 +15,8 @@ const PARTY_SHORT: Record<string, string> = {
   'Miljøpartiet De Grønne': 'MDG',
 }
 
+const COALITION_PARTIES = ['Arbeiderpartiet', 'Senterpartiet', 'Sosialistisk Venstreparti']
+
 const PARTY_BLOC: Record<string, string> = {
   'Arbeiderpartiet': 'Rød-grønn',
   'Senterpartiet': 'Rød-grønn',
@@ -40,6 +42,7 @@ const PARTY_DESCRIPTION: Record<string, string> = {
 }
 
 export default async function PartierPage() {
+  try {
   const sessionId = await getCurrentSessionId()
   const [parties, mps] = await Promise.all([
     getParties(sessionId),
@@ -140,19 +143,27 @@ export default async function PartierPage() {
           const seatPct = Math.round((seats / TOTAL_SEATS) * 100)
           const bloc = PARTY_BLOC[p.name]
 
+          const isCoalition = COALITION_PARTIES.includes(p.name)
           return (
             <Link
               key={p.id}
               href={`/partier/${p.id}`}
-              className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition"
+              className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition cursor-pointer"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div
                   className="w-3 h-10 rounded-full flex-shrink-0"
                   style={{ backgroundColor: p.color }}
                 />
-                <div>
-                  <h3 className="font-bold text-gray-900">{p.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-gray-900">{p.name}</h3>
+                    {isCoalition && (
+                      <span className="inline-block px-1.5 py-0.5 text-xs font-semibold bg-red-100 text-red-700 rounded">
+                        Regjering
+                      </span>
+                    )}
+                  </div>
                   {bloc && (
                     <span className="text-xs text-gray-400">{bloc}</span>
                   )}
@@ -184,4 +195,7 @@ export default async function PartierPage() {
       </div>
     </div>
   )
+  } catch {
+    return <div className="text-center py-16 text-gray-400">Kunne ikke laste data. Prøv igjen senere.</div>
+  }
 }

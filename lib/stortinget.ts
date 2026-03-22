@@ -9,14 +9,21 @@ function parseDate(msDate: string | null): Date {
   return new Date(msDate)
 }
 
-async function fetchJSON(endpoint: string, params: Record<string, string> = {}): Promise<any> {
+async function fetchJSON(endpoint: string, params: Record<string, string> = {}, retries = 3): Promise<any> {
   const url = new URL(`${BASE}/${endpoint}`)
   url.searchParams.set('format', 'json')
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
 
-  const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
-  if (!res.ok) throw new Error(`Stortinget API error: ${res.status}`)
-  return res.json()
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
+    if (res.ok) return res.json()
+    if (res.status === 429 && attempt < retries) {
+      // Rate limited — wait exponentially before retrying
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)))
+      continue
+    }
+    throw new Error(`Stortinget API error: ${res.status}`)
+  }
 }
 
 export async function getSessions(): Promise<{ id: string; name: string }[]> {
@@ -119,7 +126,7 @@ export async function getMPs(periodId: string): Promise<MP[]> {
     lastName: r.etternavn || '',
     party: r.parti?.navn || '',
     county: r.fylke?.navn || '',
-    photoUrl: `${BASE}/personbilde?personid=${r.id}&storrelse=middels`,
+    photoUrl: `https://www.stortinget.no/globalassets/bilder/representanter/${r.id}.jpg`,
   }))
 }
 
@@ -176,18 +183,23 @@ export async function getRecentVotes(sessionId: string, limit = 50): Promise<{ v
   const treated = cases
     .filter(c => c.status === 'behandlet')
     .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
-    .slice(0, 20)
+    .slice(0, 25)
 
   const results: { vote: Vote; caseTitle: string; caseId: string }[] = []
 
-  await Promise.all(
-    treated.slice(0, 10).map(async (c) => {
+  // Sequential fetches with small delay to avoid rate limiting
+  for (const c of treated.slice(0, 10)) {
+    try {
       const votes = await getVotesForCase(c.id)
       for (const v of votes) {
         results.push({ vote: v, caseTitle: c.shortTitle || c.title, caseId: c.id })
       }
-    })
-  )
+      if (results.length >= limit) break
+    } catch {
+      // skip this case if it fails
+    }
+    await new Promise(r => setTimeout(r, 100)) // 100ms between requests
+  }
 
   return results
     .sort((a, b) => b.vote.date.getTime() - a.vote.date.getTime())

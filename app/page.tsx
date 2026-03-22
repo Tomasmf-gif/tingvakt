@@ -28,13 +28,20 @@ export default async function HomePage() {
     .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
     .slice(0, 8)
 
-  const recentCases = cases
+  const treatedCases = cases
     .filter(c => c.status === 'behandlet')
     .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
-    .slice(0, 10)
+
+  // Fall back to most recently updated cases if no treated ones found
+  const recentCases = (treatedCases.length > 0 ? treatedCases : [...cases].sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())).slice(0, 10)
 
   const sortedParties = [...parties].sort((a, b) => b.seats - a.seats)
   const TOTAL_SEATS = 169
+  const COALITION = ['Arbeiderpartiet', 'Senterpartiet', 'Sosialistisk Venstreparti']
+  const coalitionSeats = parties
+    .filter(p => COALITION.includes(p.name))
+    .reduce((sum, p) => sum + (p.seats || 0), 0)
+  const coalitionPct = (coalitionSeats / TOTAL_SEATS) * 100
 
   const stats = {
     total: cases.length,
@@ -52,7 +59,7 @@ export default async function HomePage() {
           Følg med på hva Stortinget vedtar
         </h1>
         <p className="text-lg text-gray-500">
-          Norsk politikk i klartekst · Sesjon {sessionId}
+          {cases.length} saker i sesjon {sessionId}
         </p>
       </div>
 
@@ -190,8 +197,8 @@ export default async function HomePage() {
                 <Link href="/partier" className="text-xs text-blue-600 hover:text-blue-800">Alle partier →</Link>
               </div>
 
-              {/* Combined seat bar */}
-              <div className="flex rounded-md overflow-hidden h-3 mb-4">
+              {/* Combined seat bar with coalition divider */}
+              <div className="relative flex rounded-md overflow-hidden h-3 mb-1">
                 {sortedParties.map(p => {
                   const seats = p.seats || 0
                   const pct = (seats / TOTAL_SEATS) * 100
@@ -205,6 +212,16 @@ export default async function HomePage() {
                     />
                   )
                 })}
+                {/* Coalition/opposition divider */}
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-white/80"
+                  style={{ left: `${coalitionPct}%` }}
+                  title={`Regjering: ${coalitionSeats} mandater`}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mb-3">
+                <span>Regjering ({coalitionSeats})</span>
+                <span>Opposisjon ({TOTAL_SEATS - coalitionSeats})</span>
               </div>
 
               <div className="space-y-2">

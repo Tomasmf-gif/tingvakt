@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getParties, getMPs, getCurrentSessionId } from '@/lib/stortinget'
 import { notFound } from 'next/navigation'
+import { MPPhoto } from '@/components/MPPhoto'
 
 export const revalidate = 3600
 
@@ -90,13 +91,11 @@ export default async function PartiDetailPage({ params }: { params: { id: string
               href={`/representanter/${mp.id}`}
               className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition"
             >
-              <img
+              <MPPhoto
                 src={mp.photoUrl}
-                alt={`${mp.firstName} ${mp.lastName}`}
+                name={`${mp.firstName} ${mp.lastName}`}
                 className="w-10 h-10 rounded-full object-cover bg-gray-100 flex-shrink-0"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.firstName + ' ' + mp.lastName)}&size=40&background=e2e8f0&color=64748b`
-                }}
+                size={40}
               />
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-gray-800 leading-tight truncate">

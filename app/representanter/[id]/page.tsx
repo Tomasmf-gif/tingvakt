@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getMPs, getMP, getCommittees, getCurrentSessionId } from '@/lib/stortinget'
+import { MPPhoto } from '@/components/MPPhoto'
 
 export const revalidate = 86400
 
@@ -45,13 +46,11 @@ export default async function MPDetailPage({ params }: { params: { id: string } 
 
       {/* Profile header */}
       <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6 flex items-start gap-6">
-        <img
+        <MPPhoto
           src={photoUrl}
-          alt={`${displayMP.firstName} ${displayMP.lastName}`}
+          name={`${displayMP.firstName} ${displayMP.lastName}`}
           className="w-24 h-24 rounded-full object-cover bg-gray-100 border-2 border-gray-100 flex-shrink-0"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayMP.firstName + ' ' + displayMP.lastName)}&size=96&background=e2e8f0&color=64748b`
-          }}
+          size={96}
         />
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900">

@@ -15,7 +15,8 @@ const PARTY_SHORT: Record<string, string> = {
   'Miljøpartiet De Grønne': 'MDG',
 }
 
-const COALITION_PARTIES = ['Arbeiderpartiet', 'Senterpartiet']
+// Current government: Støre cabinet (Ap minority, Sp left Jan 2025, still Ap-only as of 2025-2026)
+const COALITION_PARTIES = ['Arbeiderpartiet']
 
 const PARTY_BLOC: Record<string, string> = {
   'Arbeiderpartiet': 'Rød-grønn',

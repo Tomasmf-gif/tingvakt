@@ -28,8 +28,16 @@ export async function getSessions(): Promise<{ id: string; name: string }[]> {
 }
 
 export async function getCurrentSessionId(): Promise<string> {
+  // sessions[0] is the next/future session — find the latest one with actual data
   const sessions = await getSessions()
-  return sessions[0]?.id || '2024-2025'
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  // Find the session that started before or in the current year
+  const current = sessions.find(s => {
+    const startYear = parseInt(s.id.split('-')[0])
+    return startYear <= currentYear
+  })
+  return current?.id || '2024-2025'
 }
 
 export async function getCases(sessionId: string): Promise<Case[]> {

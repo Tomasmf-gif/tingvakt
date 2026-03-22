@@ -115,6 +115,15 @@ export async function getMPs(periodId: string): Promise<MP[]> {
   }))
 }
 
+export async function getMP(personId: string): Promise<any | null> {
+  try {
+    const data = await fetchJSON('person', { personid: personId })
+    return data
+  } catch {
+    return null
+  }
+}
+
 export async function getParties(sessionId: string): Promise<Party[]> {
   const data = await fetchJSON('partier', { sesjonid: sessionId })
   const PARTY_COLORS: Record<string, string> = {
@@ -142,4 +151,37 @@ export async function getCommittees(sessionId: string): Promise<Committee[]> {
     id: c.id,
     name: c.navn || '',
   }))
+}
+
+export async function getCommitteeMembers(committeeId: string, sessionId: string): Promise<any[]> {
+  try {
+    const data = await fetchJSON('komitemedlemmer', { komiteid: committeeId, sesjonid: sessionId })
+    return (data.komitemedlemmer_liste || [])
+  } catch {
+    return []
+  }
+}
+
+// Get recent votes by fetching cases with votes
+export async function getRecentVotes(sessionId: string, limit = 50): Promise<{ vote: Vote; caseTitle: string; caseId: string }[]> {
+  const cases = await getCases(sessionId)
+  const treated = cases
+    .filter(c => c.status === 'behandlet')
+    .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
+    .slice(0, 20)
+
+  const results: { vote: Vote; caseTitle: string; caseId: string }[] = []
+
+  await Promise.all(
+    treated.slice(0, 10).map(async (c) => {
+      const votes = await getVotesForCase(c.id)
+      for (const v of votes) {
+        results.push({ vote: v, caseTitle: c.shortTitle || c.title, caseId: c.id })
+      }
+    })
+  )
+
+  return results
+    .sort((a, b) => b.vote.date.getTime() - a.vote.date.getTime())
+    .slice(0, limit)
 }

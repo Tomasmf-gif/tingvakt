@@ -1,8 +1,113 @@
-export default function DetailPage({ params }: { params: { id: string } }) {
+import Link from 'next/link'
+import { getParties, getMPs, getCurrentSessionId } from '@/lib/stortinget'
+import { notFound } from 'next/navigation'
+
+export const revalidate = 3600
+
+const PARTY_SHORT: Record<string, string> = {
+  'Arbeiderpartiet': 'Ap',
+  'Høyre': 'H',
+  'Fremskrittspartiet': 'FrP',
+  'Senterpartiet': 'Sp',
+  'Sosialistisk Venstreparti': 'SV',
+  'Rødt': 'R',
+  'Venstre': 'V',
+  'Kristelig Folkeparti': 'KrF',
+  'Miljøpartiet De Grønne': 'MDG',
+}
+
+const PARTY_DESCRIPTION: Record<string, string> = {
+  'Arbeiderpartiet': 'Sentrum-venstre arbeiderparti. Grunnlagt 1887. Største parti i Stortinget og leder mindretallsregjering (fra 2025).',
+  'Høyre': 'Sentrum-høyre konservativt parti. Grunnlagt 1884. Nest største opposisjonsparti.',
+  'Fremskrittspartiet': 'Høyrepopulistisk parti. Grunnlagt 1973. Største opposisjonsparti i 2025-2029.',
+  'Senterpartiet': 'Sentrum/agrart parti. Grunnlagt 1920 (som Bondepartiet). Støtter regjeringen.',
+  'Sosialistisk Venstreparti': 'Sosialistisk venstreparti. Grunnlagt 1975. Støtter regjeringen.',
+  'Rødt': 'Ytterste venstre. Grunnlagt 2007. Støtter regjeringen.',
+  'Venstre': 'Liberalt sentrumsparti. Grunnlagt 1884. Norges eldste parti. Opposisjon.',
+  'Kristelig Folkeparti': 'Kristendemokratisk parti. Grunnlagt 1933. Opposisjon.',
+  'Miljøpartiet De Grønne': 'Grønt parti. Grunnlagt 1988. Støtter regjeringen.',
+}
+
+export default async function PartiDetailPage({ params }: { params: { id: string } }) {
+  const sessionId = await getCurrentSessionId()
+  const [parties, mps] = await Promise.all([
+    getParties(sessionId),
+    getMPs('2025-2029'),
+  ])
+
+  const party = parties.find(p => p.id === params.id)
+  if (!party) notFound()
+
+  const partyMPs = mps.filter(m => m.party === party.name)
+  const BASE = 'https://data.stortinget.no/eksport'
+
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-4">Detaljer</h1>
-      <p className="text-gray-500">ID: {params.id}</p>
+    <div className="max-w-4xl">
+      <div className="mb-6">
+        <Link href="/partier" className="text-sm text-blue-600 hover:text-blue-800">← Partier</Link>
+      </div>
+
+      {/* Party header */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+        <div className="flex items-center gap-4 mb-4">
+          <div
+            className="w-4 h-16 rounded-full flex-shrink-0"
+            style={{ backgroundColor: party.color }}
+          />
+          <div>
+            <h1 className="text-2xl font-extrabold text-gray-900">{party.name}</h1>
+            <p className="text-gray-500 text-sm">
+              {PARTY_SHORT[party.name]} · {party.seats} mandater
+            </p>
+          </div>
+        </div>
+        {PARTY_DESCRIPTION[party.name] && (
+          <p className="text-sm text-gray-600 leading-relaxed">{PARTY_DESCRIPTION[party.name]}</p>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 text-center">
+          <div className="text-3xl font-extrabold text-gray-900">{party.seats}</div>
+          <div className="text-sm text-gray-500 mt-1">mandater</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 text-center">
+          <div className="text-3xl font-extrabold text-gray-900">{partyMPs.length}</div>
+          <div className="text-sm text-gray-500 mt-1">representanter</div>
+        </div>
+      </div>
+
+      {/* MPs */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4">
+          Representanter ({partyMPs.length})
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {partyMPs.map(mp => (
+            <Link
+              key={mp.id}
+              href={`/representanter/${mp.id}`}
+              className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition"
+            >
+              <img
+                src={mp.photoUrl}
+                alt={`${mp.firstName} ${mp.lastName}`}
+                className="w-10 h-10 rounded-full object-cover bg-gray-100 flex-shrink-0"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.firstName + ' ' + mp.lastName)}&size=40&background=e2e8f0&color=64748b`
+                }}
+              />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-gray-800 leading-tight truncate">
+                  {mp.firstName} {mp.lastName}
+                </p>
+                <p className="text-xs text-gray-400 truncate">{mp.county}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

@@ -188,7 +188,7 @@ export async function getRecentVotes(sessionId: string, limit = 50): Promise<{ v
   const results: { vote: Vote; caseTitle: string; caseId: string }[] = []
 
   // Sequential fetches with small delay to avoid rate limiting
-  for (const c of treated.slice(0, 10)) {
+  for (const c of treated.slice(0, 25)) {
     try {
       const votes = await getVotesForCase(c.id)
       for (const v of votes) {

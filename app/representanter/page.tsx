@@ -9,6 +9,7 @@ export default async function RepresentanterPage({
 }: {
   searchParams: { party?: string; county?: string; q?: string }
 }) {
+  try {
   const mps = await getMPs('2025-2029')
 
   const parties = [...new Set(mps.map(m => m.party))].filter(Boolean).sort()
@@ -31,4 +32,7 @@ export default async function RepresentanterPage({
       />
     </div>
   )
+  } catch {
+    return <div className="text-center py-16 text-gray-400">Kunne ikke laste data. Prøv igjen senere.</div>
+  }
 }

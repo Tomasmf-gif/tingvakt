@@ -119,7 +119,7 @@ export function RepresentanterClient({ mps, parties, counties, initialParty = ''
           <Link
             key={mp.id}
             href={`/representanter/${mp.id}`}
-            className="group flex flex-col items-center text-center bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition"
+            className="group flex flex-col items-center text-center bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition cursor-pointer"
           >
             <img
               src={mp.photoUrl}

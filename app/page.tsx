@@ -17,6 +17,7 @@ const PARTY_SHORT: Record<string, string> = {
 }
 
 export default async function HomePage() {
+  try {
   const sessionId = await getCurrentSessionId()
   const [cases, parties] = await Promise.all([
     getCases(sessionId),
@@ -81,7 +82,7 @@ export default async function HomePage() {
                 <Link
                   key={c.id}
                   href={`/saker/${c.id}`}
-                  className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition"
+                  className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
@@ -125,7 +126,7 @@ export default async function HomePage() {
                 <Link
                   key={c.id}
                   href={`/saker/${c.id}`}
-                  className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition"
+                  className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
@@ -269,4 +270,7 @@ export default async function HomePage() {
       </div>
     </div>
   )
+  } catch {
+    return <div className="text-center py-16 text-gray-400">Kunne ikke laste data. Prøv igjen senere.</div>
+  }
 }

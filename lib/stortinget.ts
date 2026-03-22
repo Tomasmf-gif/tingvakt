@@ -35,14 +35,14 @@ export async function getSessions(): Promise<{ id: string; name: string }[]> {
 }
 
 export async function getCurrentSessionId(): Promise<string> {
-  // sessions[0] is the next/future session — find the latest one with actual data
+  // Stortinget sessions run Oct–Oct (e.g. "2024-2025" started Oct 2024).
+  // The API lists future pre-created sessions first — skip them.
   const sessions = await getSessions()
   const now = new Date()
-  const currentYear = now.getFullYear()
-  // Find the session that started before or in the current year
   const current = sessions.find(s => {
     const startYear = parseInt(s.id.split('-')[0])
-    return startYear <= currentYear
+    const sessionStart = new Date(startYear, 9, 1) // October 1st of start year
+    return sessionStart <= now
   })
   return current?.id || '2024-2025'
 }

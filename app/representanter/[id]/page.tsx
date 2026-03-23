@@ -1,9 +1,21 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getMPs, getMP, getCommittees, getCurrentSessionId } from '@/lib/stortinget'
+import { getMPs, getMP, getCurrentSessionId } from '@/lib/stortinget'
 import { MPPhoto } from '@/components/MPPhoto'
 
 export const revalidate = 86400
+
+const PARTY_COLORS: Record<string, string> = {
+  'Arbeiderpartiet': '#d42f2f',
+  'Høyre': '#0065f0',
+  'Fremskrittspartiet': '#024a8c',
+  'Senterpartiet': '#2e8b4a',
+  'Sosialistisk Venstreparti': '#eb3b47',
+  'Rødt': '#8b0000',
+  'Venstre': '#00807a',
+  'Kristelig Folkeparti': '#f5c542',
+  'Miljøpartiet De Grønne': '#6aab25',
+}
 
 function parseBirthYear(msDate: string): string {
   const match = msDate.match(/\/Date\((\d+)/)
@@ -11,14 +23,18 @@ function parseBirthYear(msDate: string): string {
   return ''
 }
 
+function mapGender(kjoenn: any): string | null {
+  if (kjoenn === 1 || kjoenn === 'K' || kjoenn === 'Kvinne' || kjoenn === 'kvinne') return 'Kvinne'
+  if (kjoenn === 2 || kjoenn === 'M' || kjoenn === 'Mann' || kjoenn === 'mann') return 'Mann'
+  return null
+}
+
 export default async function MPDetailPage({ params }: { params: { id: string } }) {
-  const BASE = 'https://data.stortinget.no/eksport'
   const [personData, sessionId] = await Promise.all([
     getMP(params.id),
     getCurrentSessionId(),
   ])
 
-  // Also get MPs list to find basic info
   const mps = await getMPs('2025-2029')
   const mp = mps.find(m => m.id === params.id)
 
@@ -34,9 +50,11 @@ export default async function MPDetailPage({ params }: { params: { id: string } 
   }
 
   const photoUrl = `/api/photo?id=${params.id}`
+  const partyColor = PARTY_COLORS[displayMP.party] || '#666666'
+  const genderLabel = mapGender(personData?.kjoenn)
 
-  // Get committee memberships from person data
-  const committees = personData?.komitemedlemskap_liste || []
+  // Committee memberships from person data (available when API returns them)
+  const committees: any[] = personData?.komitemedlemskap_liste || []
 
   return (
     <div className="max-w-3xl">
@@ -52,13 +70,14 @@ export default async function MPDetailPage({ params }: { params: { id: string } 
           className="w-24 h-24 rounded-full object-cover bg-gray-100 border-2 border-gray-100 flex-shrink-0"
           size={96}
         />
-        <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-gray-900">
             {displayMP.firstName} {displayMP.lastName}
           </h1>
           <div className="flex items-center gap-3 mt-2 flex-wrap">
             {displayMP.party && (
-              <span className="px-2 py-1 text-sm font-semibold bg-gray-100 text-gray-700 rounded">
+              <span className="flex items-center gap-1.5 px-2 py-1 text-sm font-semibold bg-gray-100 text-gray-700 rounded">
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: partyColor }} />
                 {displayMP.party}
               </span>
             )}
@@ -66,29 +85,26 @@ export default async function MPDetailPage({ params }: { params: { id: string } 
               <span className="text-sm text-gray-500">{displayMP.county}</span>
             )}
           </div>
-          {personData?.kjoenn && (
-            <p className="text-sm text-gray-400 mt-1">
-              {personData.kjoenn === 'mann' ? 'Mann' : 'Kvinne'}
-            </p>
-          )}
-          {personData?.foedselsdato && (
-            <p className="text-sm text-gray-400 mt-0.5">
-              Født: {parseBirthYear(personData.foedselsdato)}
-            </p>
-          )}
+          <div className="flex items-center gap-4 mt-2 flex-wrap text-sm text-gray-400">
+            {genderLabel && <span>{genderLabel}</span>}
+            {personData?.foedselsdato && (
+              <span>Født: {parseBirthYear(personData.foedselsdato)}</span>
+            )}
+            {mp && <span>Representant 2025–2029</span>}
+          </div>
         </div>
       </div>
 
       {/* Committee memberships */}
       {committees.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Komitémedlemskap</h2>
-          <div className="space-y-2">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Komitémedlemskap</h2>
+          <div className="flex flex-wrap gap-2">
             {committees.map((c: any, i: number) => (
-              <div key={i} className="flex items-center justify-between">
-                <span className="text-sm text-gray-800">{c.komite?.navn || c.navn}</span>
-                {c.rolle && <span className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{c.rolle}</span>}
-              </div>
+              <span key={i} className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
+                {c.komite?.navn || c.navn}
+                {c.rolle && <span className="text-blue-500 text-xs">· {c.rolle}</span>}
+              </span>
             ))}
           </div>
         </div>
@@ -96,7 +112,7 @@ export default async function MPDetailPage({ params }: { params: { id: string } 
 
       {/* Links */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Lenker</h2>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Lenker</h2>
         <div className="flex gap-4 flex-wrap">
           <a
             href={`https://www.stortinget.no/no/Representanter-og-komiteer/Representantene/Representantfordeling/Representant/?perid=${params.id}`}

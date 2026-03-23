@@ -45,12 +45,14 @@ export default async function KomiteerPage() {
     }
   }
 
-  const sortedCommittees = [...committees].sort((a, b) => a.name.localeCompare(b.name, 'nb'))
+  const sortedCommittees = [...committees]
+    .filter(c => !c.name.toLowerCase().includes('korona'))
+    .sort((a, b) => a.name.localeCompare(b.name, 'nb'))
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Komiteer</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">Komiteer</h1>
         <p className="text-gray-500">
           {committees.length} faste komiteer · Sesjon {sessionId}
         </p>

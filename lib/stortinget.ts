@@ -2,6 +2,31 @@ import { Case, Vote, VoteResult, MP, Party, Committee } from './types'
 
 const BASE = 'https://data.stortinget.no/eksport'
 
+const STATUS_MAP: Record<number, string> = {
+  1: 'behandlet',
+  2: 'til_behandling',
+  3: 'mottatt',
+  4: 'varslet',
+  5: 'trukket',
+  6: 'bortfalt',
+}
+
+const TYPE_MAP: Record<number, string> = {
+  1: 'lovsak',
+  2: 'alminneligsak',
+  3: 'budsjett',
+}
+
+function mapStatus(s: any): string {
+  if (typeof s === 'number') return STATUS_MAP[s] || 'mottatt'
+  return s || 'mottatt'
+}
+
+function mapType(t: any): string {
+  if (typeof t === 'number') return TYPE_MAP[t] || 'alminneligsak'
+  return t || 'alminneligsak'
+}
+
 function parseDate(msDate: string | null): Date {
   if (!msDate) return new Date()
   const match = msDate.match(/\/Date\((\d+)([+-]\d+)?\)\//)
@@ -18,11 +43,25 @@ async function fetchJSON(endpoint: string, params: Record<string, string> = {}, 
     const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
     if (res.ok) return res.json()
     if (res.status === 429 && attempt < retries) {
-      // Rate limited — wait exponentially before retrying
       await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)))
       continue
     }
     throw new Error(`Stortinget API error: ${res.status}`)
+  }
+}
+
+function mapCaseItem(s: any): Case {
+  return {
+    id: String(s.sak_id || s.id || ''),
+    title: s.tittel || s.korttittel || 'Uten tittel',
+    shortTitle: s.korttittel || s.tittel || '',
+    type: mapType(s.type),
+    status: mapStatus(s.status) as any,
+    documentGroup: s.dokumentgruppe || '',
+    committee: s.komite?.navn,
+    lastUpdated: parseDate(s.sist_oppdatert_dato),
+    reference: s.henvisning || '',
+    topics: (s.emne_liste || []).map((e: any) => e.navn),
   }
 }
 
@@ -40,36 +79,18 @@ export async function getCurrentSessionId(): Promise<string> {
 
 export async function getCases(sessionId: string): Promise<Case[]> {
   const data = await fetchJSON('saker', { sesjonid: sessionId })
-  return (data.saker_liste || []).map((s: any) => ({
-    id: s.id,
-    title: s.tittel || s.korttittel || 'Uten tittel',
-    shortTitle: s.korttittel || s.tittel || '',
-    type: s.type || 'alminneligsak',
-    status: s.status || 'mottatt',
-    documentGroup: s.dokumentgruppe || '',
-    committee: s.komite?.navn,
-    lastUpdated: parseDate(s.sist_oppdatert_dato),
-    reference: s.henvisning || '',
-    topics: (s.emne_liste || []).map((e: any) => e.navn),
-  }))
+  return (data.saker_liste || []).map(mapCaseItem)
 }
 
 export async function getCase(caseId: string): Promise<Case | null> {
   try {
     const data = await fetchJSON('sak', { sakid: caseId })
-    const s = data
-    return {
-      id: s.id,
-      title: s.tittel || s.korttittel || 'Uten tittel',
-      shortTitle: s.korttittel || s.tittel || '',
-      type: s.type || 'alminneligsak',
-      status: s.status || 'mottatt',
-      documentGroup: s.dokumentgruppe || '',
-      committee: s.komite?.navn,
-      lastUpdated: parseDate(s.sist_oppdatert_dato),
-      reference: s.henvisning || '',
-      topics: (s.emne_liste || []).map((e: any) => e.navn),
-    }
+    // The sak endpoint may return the case directly or wrapped
+    const s = (data.saker_liste && data.saker_liste.length > 0)
+      ? data.saker_liste[0]
+      : (data.tittel || data.id ? data : null)
+    if (!s) return null
+    return mapCaseItem(s)
   } catch {
     return null
   }
@@ -87,7 +108,7 @@ export async function getVotesForCase(caseId: string): Promise<Vote[]> {
       votesFor: v.antall_for || 0,
       votesAgainst: v.antall_mot || 0,
       absent: v.antall_ikke_tilstede || 0,
-      date: parseDate(v.dato || null),
+      date: parseDate(v.votering_tid || v.dato || null),
     }))
   } catch {
     return []
@@ -168,18 +189,26 @@ export async function getCommitteeMembers(committeeId: string, sessionId: string
   }
 }
 
-// Get recent votes by fetching cases with votes
+// Get recent votes — fetches from treated cases; falls back to previous session if none found
 export async function getRecentVotes(sessionId: string, limit = 50): Promise<{ vote: Vote; caseTitle: string; caseId: string }[]> {
-  const cases = await getCases(sessionId)
-  const treated = cases
+  let cases = await getCases(sessionId)
+  let treated = cases
     .filter(c => c.status === 'behandlet')
     .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
     .slice(0, 25)
 
+  // If no treated cases in current session, fall back to previous session
+  if (treated.length === 0) {
+    const prevCases = await getCases('2024-2025')
+    treated = prevCases
+      .filter(c => c.status === 'behandlet')
+      .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
+      .slice(0, 25)
+  }
+
   const results: { vote: Vote; caseTitle: string; caseId: string }[] = []
 
-  // Sequential fetches with small delay to avoid rate limiting
-  for (const c of treated.slice(0, 25)) {
+  for (const c of treated) {
     try {
       const votes = await getVotesForCase(c.id)
       for (const v of votes) {
@@ -187,9 +216,9 @@ export async function getRecentVotes(sessionId: string, limit = 50): Promise<{ v
       }
       if (results.length >= limit) break
     } catch {
-      // skip this case if it fails
+      // skip
     }
-    await new Promise(r => setTimeout(r, 100)) // 100ms between requests
+    await new Promise(r => setTimeout(r, 100))
   }
 
   return results

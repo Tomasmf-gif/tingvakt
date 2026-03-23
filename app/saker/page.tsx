@@ -41,12 +41,12 @@ export default async function SakerPage({
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
 
   const STATUS_BADGE: Record<string, string> = {
-    behandlet: 'bg-green-100 text-green-800',
-    til_behandling: 'bg-blue-100 text-blue-800',
-    mottatt: 'bg-gray-100 text-gray-700',
+    behandlet: 'bg-green-50 text-green-700 border border-green-200',
+    til_behandling: 'bg-blue-50 text-blue-700 border border-blue-200',
+    mottatt: 'bg-gray-100 text-gray-600',
     varslet: 'bg-yellow-100 text-yellow-800',
-    trukket: 'bg-red-100 text-red-700',
-    bortfalt: 'bg-red-100 text-red-700',
+    trukket: 'bg-red-50 text-red-700 border border-red-200',
+    bortfalt: 'bg-red-50 text-red-700 border border-red-200',
   }
 
   const TYPE_LABEL: Record<string, string> = {
@@ -58,7 +58,7 @@ export default async function SakerPage({
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Saker</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">Saker</h1>
         <p className="text-gray-500">Sesjon {sessionId} · {cases.length} saker totalt</p>
       </div>
 
@@ -77,7 +77,7 @@ export default async function SakerPage({
           <Link
             key={c.id}
             href={`/saker/${c.id}`}
-            className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition cursor-pointer"
+            className="block bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-200 transition-all cursor-pointer"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">

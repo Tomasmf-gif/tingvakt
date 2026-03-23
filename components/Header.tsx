@@ -11,7 +11,7 @@ export function Header() {
 
   const linkClass = (href: string) =>
     `px-3 py-1.5 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition ${
-      isActive(href) ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-600'
+      isActive(href) ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-100' : 'text-gray-600'
     }`
 
   return (

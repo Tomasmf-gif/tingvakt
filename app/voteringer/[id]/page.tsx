@@ -6,15 +6,20 @@ import { VotePartyExpand } from './VotePartyExpand'
 export const revalidate = 3600
 
 const PARTY_COLORS: Record<string, string> = {
-  'Arbeiderpartiet': '#d42f2f',
-  'Høyre': '#0065f0',
-  'Fremskrittspartiet': '#024a8c',
-  'Senterpartiet': '#2e8b4a',
-  'Sosialistisk Venstreparti': '#eb3b47',
-  'Rødt': '#8b0000',
-  'Venstre': '#00807a',
-  'Kristelig Folkeparti': '#f5c542',
-  'Miljøpartiet De Grønne': '#6aab25',
+  'A': '#d42f2f',
+  'H': '#0065f0',
+  'FrP': '#024a8c',
+  'SP': '#2e8b4a',
+  'SV': '#eb3b47',
+  'R': '#8b0000',
+  'V': '#00807a',
+  'KrF': '#f5c542',
+  'MDG': '#6aab25',
+}
+
+const PARTY_SHORT: Record<string, string> = {
+  'A': 'Ap', 'H': 'H', 'FrP': 'FrP', 'SP': 'Sp', 'SV': 'SV',
+  'R': 'R', 'V': 'V', 'KrF': 'KrF', 'MDG': 'MDG',
 }
 
 export default async function VoteDetailPage({ params }: { params: { id: string } }) {
@@ -128,7 +133,7 @@ export default async function VoteDetailPage({ params }: { params: { id: string 
                     <td className="py-2 pr-2 w-3">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PARTY_COLORS[party] || '#666666' }} />
                     </td>
-                    <td className="py-2 font-medium text-gray-800">{party}</td>
+                    <td className="py-2 font-medium text-gray-800">{PARTY_SHORT[party] || party}</td>
                     <td className="py-2 text-right text-green-700 font-medium">{counts.for || '—'}</td>
                     <td className="py-2 text-right text-red-700 font-medium">{counts.mot || '—'}</td>
                     <td className="py-2 text-right text-gray-400">{counts.absent || '—'}</td>

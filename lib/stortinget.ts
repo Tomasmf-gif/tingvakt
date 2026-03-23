@@ -51,12 +51,19 @@ async function fetchJSON(endpoint: string, params: Record<string, string> = {}, 
 }
 
 function mapCaseItem(s: any): Case {
+  // Status 1: check behandlet_sesjon_id to distinguish 'behandlet' vs 'mottatt'
+  let status: string
+  if (s.status === 1) {
+    status = s.behandlet_sesjon_id ? 'behandlet' : 'mottatt'
+  } else {
+    status = mapStatus(s.status)
+  }
   return {
     id: String(s.sak_id || s.id || ''),
     title: s.tittel || s.korttittel || 'Uten tittel',
     shortTitle: s.korttittel || s.tittel || '',
     type: mapType(s.type),
-    status: mapStatus(s.status) as any,
+    status: status as any,
     documentGroup: s.dokumentgruppe || '',
     committee: s.komite?.navn,
     lastUpdated: parseDate(s.sist_oppdatert_dato),
@@ -122,9 +129,9 @@ export async function getVoteResult(voteId: string): Promise<VoteResult[]> {
     return (data.voteringsresultat_liste || []).map((r: any) => ({
       mpId: r.representant?.id || '',
       mpName: `${r.representant?.fornavn || ''} ${r.representant?.etternavn || ''}`.trim(),
-      party: r.representant?.parti?.navn || '',
+      party: r.representant?.parti?.id || r.representant?.parti?.navn || '',
       county: r.representant?.fylke?.navn || '',
-      vote: r.votering as 'for' | 'mot' | 'ikke_tilstede',
+      vote: r.votering === 1 ? 'for' : r.votering === 2 ? 'mot' : 'ikke_tilstede',
     }))
   } catch {
     return []

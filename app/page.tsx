@@ -24,17 +24,20 @@ export default async function HomePage() {
     getParties(sessionId),
   ])
 
-  const activeCases = cases
+  const allActiveCases = cases
     .filter(c => c.status === 'til_behandling')
     .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
-    .slice(0, 8)
+  const activeCases = allActiveCases.slice(0, 12)
+  const moreActiveCases = allActiveCases.length - activeCases.length
 
   const treatedCases = cases
     .filter(c => c.status === 'behandlet')
     .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
 
   // Fall back to most recently updated cases if no treated ones found
-  const recentCases = (treatedCases.length > 0 ? treatedCases : [...cases].sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())).slice(0, 10)
+  const allRecentCases = treatedCases.length > 0 ? treatedCases : [...cases].sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
+  const recentCases = allRecentCases.slice(0, 12)
+  const moreRecentCases = allRecentCases.length - recentCases.length
 
   const sortedParties = [...parties].sort((a, b) => b.seats - a.seats)
   const TOTAL_SEATS = 169
@@ -111,6 +114,11 @@ export default async function HomePage() {
               {recentCases.length === 0 && (
                 <p className="text-gray-400 text-sm py-4">Ingen vedtak funnet for denne sesjonen ennå.</p>
               )}
+              {moreRecentCases > 0 && (
+                <Link href="/saker?status=behandlet" className="block text-center text-xs text-blue-500 hover:text-blue-700 py-2">
+                  og {moreRecentCases} til →
+                </Link>
+              )}
             </div>
           </section>
 
@@ -157,6 +165,11 @@ export default async function HomePage() {
               ))}
               {activeCases.length === 0 && (
                 <p className="text-gray-400 text-sm py-4">Ingen saker til behandling akkurat nå.</p>
+              )}
+              {moreActiveCases > 0 && (
+                <Link href="/saker?status=til_behandling" className="block text-center text-xs text-blue-500 hover:text-blue-700 py-2">
+                  og {moreActiveCases} til →
+                </Link>
               )}
             </div>
           </section>

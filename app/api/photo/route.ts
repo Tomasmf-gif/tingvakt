@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const res = await fetch(
-      `https://data.stortinget.no/eksport/personbilde?personid=${id}&storrelse=lite`,
+      `https://data.stortinget.no/eksport/personbilde?personid=${id}&storrelse=stor`,
       { next: { revalidate: 86400 } }
     )
     if (!res.ok) return new NextResponse('Not found', { status: 404 })

@@ -4,6 +4,18 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { MP } from '@/lib/types'
 
+const PARTY_COLORS: Record<string, string> = {
+  'Arbeiderpartiet': '#d42f2f',
+  'Høyre': '#0065f0',
+  'Fremskrittspartiet': '#024a8c',
+  'Senterpartiet': '#2e8b4a',
+  'Sosialistisk Venstreparti': '#eb3b47',
+  'Rødt': '#8b0000',
+  'Venstre': '#00807a',
+  'Kristelig Folkeparti': '#f5c542',
+  'Miljøpartiet De Grønne': '#6aab25',
+}
+
 interface Props {
   mps: MP[]
   parties: string[]
@@ -115,28 +127,34 @@ export function RepresentanterClient({ mps, parties, counties, initialParty = ''
 
       {/* MP grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {filtered.map(mp => (
-          <Link
-            key={mp.id}
-            href={`/representanter/${mp.id}`}
-            className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition cursor-pointer h-48"
-          >
-            <img
-              src={mp.photoUrl}
-              alt={`${mp.firstName} ${mp.lastName}`}
-              className="w-full h-32 object-cover object-top"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.firstName + ' ' + mp.lastName)}&size=128&background=e2e8f0&color=64748b`
-              }}
-            />
-            <div className="p-2 flex-1 min-w-0">
-              <p className="text-xs font-semibold text-gray-900 leading-tight truncate">
-                {mp.firstName} {mp.lastName}
-              </p>
-              <p className="text-xs text-gray-500 mt-0.5 truncate">{mp.party}</p>
-            </div>
-          </Link>
-        ))}
+        {filtered.map(mp => {
+          const partyColor = PARTY_COLORS[mp.party] || '#666666'
+          return (
+            <Link
+              key={mp.id}
+              href={`/representanter/${mp.id}`}
+              className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition cursor-pointer h-52"
+            >
+              {/* Party color stripe */}
+              <div className="h-1 w-full flex-shrink-0" style={{ backgroundColor: partyColor }} />
+              <div className="flex flex-col items-center text-center p-4 pt-0 flex-1">
+                <img
+                  src={mp.photoUrl}
+                  alt={`${mp.firstName} ${mp.lastName}`}
+                  className="w-20 h-20 rounded-full object-cover object-top border-2 border-white shadow mx-auto mt-4 mb-2"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(mp.firstName + ' ' + mp.lastName)}&size=80&background=e2e8f0&color=64748b`
+                  }}
+                />
+                <p className="text-xs font-semibold text-gray-900 leading-tight line-clamp-2">
+                  {mp.firstName} {mp.lastName}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5 truncate w-full">{mp.party}</p>
+                <p className="text-xs text-gray-400 truncate w-full">{mp.county}</p>
+              </div>
+            </Link>
+          )
+        })}
       </div>
 
       {filtered.length === 0 && (

@@ -106,9 +106,9 @@ export async function getVotesForCase(caseId: string): Promise<Vote[]> {
       topic: v.votering_tema || '',
       passed: v.vedtatt === true,
       method: v.votering_metode || 'elektronisk',
-      votesFor: v.antall_for || 0,
-      votesAgainst: v.antall_mot || 0,
-      absent: v.antall_ikke_tilstede || 0,
+      votesFor: Math.max(0, v.antall_for ?? 0),
+      votesAgainst: Math.max(0, v.antall_mot ?? 0),
+      absent: Math.max(0, v.antall_ikke_tilstede ?? 0),
       date: parseDate(v.votering_tid || v.dato || null),
     }))
   } catch {

@@ -53,8 +53,8 @@ export default async function MPDetailPage({ params }: { params: { id: string } 
   const partyColor = PARTY_COLORS[displayMP.party] || '#666666'
   const genderLabel = mapGender(personData?.kjoenn)
 
-  // Committee memberships from person data (available when API returns them)
-  const committees: any[] = personData?.komitemedlemskap_liste || []
+  // Committee memberships from person data — try multiple possible field names
+  const committees: any[] = personData?.komitemedlemskap_liste || personData?.komite_liste || []
 
   return (
     <div className="max-w-3xl">

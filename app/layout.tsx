@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 export const metadata: Metadata = {
   title: 'Tingvakt — Norsk politikk i klartekst',
   description: 'Følg med på hva Stortinget vedtar. Saker, voteringer og representanter — forklart på enkel norsk.',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

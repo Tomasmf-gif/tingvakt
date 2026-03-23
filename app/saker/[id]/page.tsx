@@ -31,6 +31,17 @@ const TYPE_LABEL: Record<string, string> = {
   alminneligsak: 'Alminnelig sak',
 }
 
+const DOC_GROUP_LABEL: Record<number, string> = {
+  1: 'Stortingsmelding',
+  2: 'Proposisjon',
+  3: 'Innstilling',
+  4: 'Representantforslag',
+  5: 'Interpellasjon',
+  6: 'Spørsmål',
+  7: 'Budsjettforslag',
+  8: 'Lovforslag',
+}
+
 export default async function CaseDetailPage({ params }: { params: { id: string } }) {
   const [caseData, votes] = await Promise.all([
     getCase(params.id),
@@ -77,6 +88,11 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
           <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
             {TYPE_LABEL[caseData.type] || caseData.type}
           </span>
+          {caseData.documentGroup && DOC_GROUP_LABEL[Number(caseData.documentGroup)] && (
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              {DOC_GROUP_LABEL[Number(caseData.documentGroup)]}
+            </span>
+          )}
           {isFailed ? (
             <span className="px-2 py-1 text-sm font-semibold rounded bg-red-100 text-red-800">
               {caseData.status === 'trukket' ? 'Trukket' : 'Bortfalt'}
@@ -89,9 +105,14 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
         </div>
         <h1 className="text-2xl font-extrabold text-gray-900 leading-snug">{caseData.title}</h1>
         {caseData.committee && (
-          <p className="text-gray-500 mt-2">{caseData.committee}</p>
+          <p className="text-base font-semibold text-blue-700 mt-2">{caseData.committee}</p>
         )}
         <p className="text-sm text-gray-400 mt-1">Sist oppdatert: {formatDate(caseData.lastUpdated)}</p>
+        {caseData.proposers && caseData.proposers.length > 0 && (
+          <p className="text-sm text-gray-600 mt-2">
+            <span className="font-medium">Forslagsstiller:</span> {caseData.proposers.join(', ')}
+          </p>
+        )}
       </div>
 
       {/* Status timeline */}

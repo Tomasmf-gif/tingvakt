@@ -62,6 +62,7 @@ function mapCaseItem(s: any): Case {
     lastUpdated: parseDate(s.sist_oppdatert_dato),
     reference: s.henvisning || '',
     topics: (s.emne_liste || []).map((e: any) => e.navn),
+    proposers: (s.forslagstiller_liste || []).map((p: any) => `${p.fornavn || ''} ${p.etternavn || ''}`.trim()).filter(Boolean),
   }
 }
 
@@ -152,7 +153,10 @@ export async function getMP(personId: string): Promise<any | null> {
 }
 
 export async function getParties(sessionId: string): Promise<Party[]> {
-  const data = await fetchJSON('partier', { sesjonid: sessionId })
+  const [data, mpsData] = await Promise.all([
+    fetchJSON('partier', { sesjonid: sessionId }),
+    fetchJSON('representanter', { stortingsperiodeid: '2025-2029' }),
+  ])
   const PARTY_COLORS: Record<string, string> = {
     'Arbeiderpartiet': '#d42f2f',
     'Høyre': '#0065f0',
@@ -164,10 +168,16 @@ export async function getParties(sessionId: string): Promise<Party[]> {
     'Kristelig Folkeparti': '#f5c542',
     'Miljøpartiet De Grønne': '#6aab25',
   }
+  // Count seats per party from the representatives list (partier API lacks seat counts)
+  const seatCount: Record<string, number> = {}
+  for (const r of (mpsData.representanter_liste || [])) {
+    const partyName = r.parti?.navn || ''
+    if (partyName) seatCount[partyName] = (seatCount[partyName] || 0) + 1
+  }
   return (data.partier_liste || []).map((p: any) => ({
     id: p.id,
     name: p.navn || '',
-    seats: p.representert_antall || 0,
+    seats: seatCount[p.navn] || 0,
     color: PARTY_COLORS[p.navn] || '#666666',
   }))
 }
@@ -189,21 +199,22 @@ export async function getCommitteeMembers(committeeId: string, sessionId: string
   }
 }
 
-// Get recent votes — fetches from treated cases; falls back to previous session if none found
+// Get recent votes — fetches votes for recent treated cases (direct session endpoint not supported by API)
 export async function getRecentVotes(sessionId: string, limit = 50): Promise<{ vote: Vote; caseTitle: string; caseId: string }[]> {
   let cases = await getCases(sessionId)
   let treated = cases
     .filter(c => c.status === 'behandlet')
     .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
-    .slice(0, 25)
+    .slice(0, 50)
 
-  // If no treated cases in current session, fall back to previous session
-  if (treated.length === 0) {
+  // If not enough treated cases in current session, also pull from previous session
+  if (treated.length < 10) {
     const prevCases = await getCases('2024-2025')
-    treated = prevCases
+    const prevTreated = prevCases
       .filter(c => c.status === 'behandlet')
       .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
-      .slice(0, 25)
+      .slice(0, 30)
+    treated = [...treated, ...prevTreated]
   }
 
   const results: { vote: Vote; caseTitle: string; caseId: string }[] = []
@@ -218,7 +229,6 @@ export async function getRecentVotes(sessionId: string, limit = 50): Promise<{ v
     } catch {
       // skip
     }
-    await new Promise(r => setTimeout(r, 100))
   }
 
   return results

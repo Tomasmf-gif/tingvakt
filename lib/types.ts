@@ -9,6 +9,7 @@ export interface Case {
   lastUpdated: Date
   reference: string
   topics: string[]
+  proposers?: string[]
 }
 
 export interface Vote {

@@ -52,16 +52,19 @@ export default async function HomePage() {
     announced: cases.filter(c => c.status === 'varslet').length,
   }
 
+  const todayNorwegian = new Date().toLocaleDateString('nb-NO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+
   return (
     <div>
       {/* Hero */}
-      <div className="mb-10">
+      <div className="bg-gray-50 -mx-4 px-4 py-8 mb-8 rounded-xl">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          🇳🇴 Følg med på hva Stortinget vedtar
+          Følg med på hva Stortinget vedtar
         </h1>
-        <p className="text-lg text-gray-500">
+        <p className="text-lg text-gray-500 mb-1">
           {cases.length} saker i sesjon {sessionId}
         </p>
+        <p className="text-sm text-gray-400 capitalize">{todayNorwegian}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

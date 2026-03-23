@@ -22,7 +22,7 @@ export default async function SakerPage({
   const committeeFilter = searchParams.committee || ''
   const query = (searchParams.q || '').toLowerCase()
   const page = parseInt(searchParams.page || '1', 10)
-  const PER_PAGE = 30
+  const PER_PAGE = 25
 
   let filtered = cases
   if (statusFilter) filtered = filtered.filter(c => c.status === statusFilter)

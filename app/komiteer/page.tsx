@@ -46,7 +46,7 @@ export default async function KomiteerPage() {
   }
 
   const sortedCommittees = [...committees]
-    .filter(c => !c.name.toLowerCase().includes('korona'))
+    .filter(c => !c.name.toLowerCase().includes('korona') && !c.name.toLowerCase().includes('særskilt'))
     .sort((a, b) => a.name.localeCompare(b.name, 'nb'))
 
   return (

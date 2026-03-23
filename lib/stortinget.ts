@@ -117,7 +117,7 @@ export async function getMPs(periodId: string): Promise<MP[]> {
     lastName: r.etternavn || '',
     party: r.parti?.navn || '',
     county: r.fylke?.navn || '',
-    photoUrl: `https://www.stortinget.no/globalassets/bilder/representanter/${r.id}.jpg`,
+    photoUrl: `/api/photo?id=${r.id}`,
   }))
 }
 

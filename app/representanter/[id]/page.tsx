@@ -30,10 +30,10 @@ export default async function MPDetailPage({ params }: { params: { id: string } 
     lastName: personData?.etternavn || '',
     party: personData?.parti?.navn || '',
     county: personData?.fylke?.navn || '',
-    photoUrl: `${BASE}/personbilde?personid=${params.id}&storrelse=stor`,
+    photoUrl: `/api/photo?id=${params.id}`,
   }
 
-  const photoUrl = `${BASE}/personbilde?personid=${params.id}&storrelse=stor`
+  const photoUrl = `/api/photo?id=${params.id}`
 
   // Get committee memberships from person data
   const committees = personData?.komitemedlemskap_liste || []

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getMPs, getMP, getCurrentSessionId } from '@/lib/stortinget'
+import { getMPs, getMP, getCurrentSessionId, getDagensRepresentanter } from '@/lib/stortinget'
 import { MPPhoto } from '@/components/MPPhoto'
 
 export const revalidate = 86400
@@ -30,9 +30,10 @@ function mapGender(kjoenn: any): string | null {
 }
 
 export default async function MPDetailPage({ params }: { params: { id: string } }) {
-  const [personData, sessionId] = await Promise.all([
+  const [personData, sessionId, dagensReps] = await Promise.all([
     getMP(params.id),
     getCurrentSessionId(),
+    getDagensRepresentanter(),
   ])
 
   const mps = await getMPs('2025-2029')
@@ -53,8 +54,9 @@ export default async function MPDetailPage({ params }: { params: { id: string } 
   const partyColor = PARTY_COLORS[displayMP.party] || '#666666'
   const genderLabel = mapGender(personData?.kjoenn)
 
-  // Committee memberships from person data — try multiple possible field names
-  const committees: any[] = personData?.komitemedlemskap_liste || personData?.komite_liste || []
+  // Committee memberships from dagensrepresentanter (includes komiteer_liste per MP)
+  const dagensRep = dagensReps.find(r => r.id === params.id)
+  const committees = dagensRep?.committees || []
 
   return (
     <div className="max-w-3xl">
@@ -100,11 +102,14 @@ export default async function MPDetailPage({ params }: { params: { id: string } 
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Komitémedlemskap</h2>
           <div className="flex flex-wrap gap-2">
-            {committees.map((c: any, i: number) => (
-              <span key={i} className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
-                {c.komite?.navn || c.navn}
-                {c.rolle && <span className="text-blue-500 text-xs">· {c.rolle}</span>}
-              </span>
+            {committees.map((c, i) => (
+              <Link
+                key={i}
+                href={`/komiteer/${c.id}`}
+                className="inline-flex items-center px-3 py-1 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded-full hover:bg-blue-100 transition"
+              >
+                {c.name}
+              </Link>
             ))}
           </div>
         </div>

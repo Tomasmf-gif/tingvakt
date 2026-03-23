@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getParties, getMPs, getCurrentSessionId } from '@/lib/stortinget'
+import { getParties, getMPs, getCurrentSessionId, getCases } from '@/lib/stortinget'
 import { notFound } from 'next/navigation'
 import { MPPhoto } from '@/components/MPPhoto'
 
@@ -31,16 +31,19 @@ const PARTY_DESCRIPTION: Record<string, string> = {
 
 export default async function PartiDetailPage({ params }: { params: { id: string } }) {
   const sessionId = await getCurrentSessionId()
-  const [parties, mps] = await Promise.all([
+  const [parties, mps, cases] = await Promise.all([
     getParties(sessionId),
     getMPs('2025-2029'),
+    getCases(sessionId),
   ])
 
   const party = parties.find(p => p.id === params.id)
   if (!party) notFound()
 
   const partyMPs = mps.filter(m => m.party === party.name)
-  const BASE = 'https://data.stortinget.no/eksport'
+  const sakerFremmet = cases.filter(c =>
+    c.proposers.some(p => p.toLowerCase().includes(party.name.toLowerCase().split(' ')[0]))
+  ).length
 
   return (
     <div className="max-w-4xl">
@@ -68,14 +71,18 @@ export default async function PartiDetailPage({ params }: { params: { id: string
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-5 text-center">
-          <div className="text-3xl font-extrabold text-gray-900">{party.seats}</div>
-          <div className="text-sm text-gray-500 mt-1">mandater</div>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-gray-50 rounded-lg p-4 text-center">
+          <div className="text-2xl font-extrabold text-gray-900">{party.seats}</div>
+          <div className="text-xs text-gray-500 mt-1">mandater</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-5 text-center">
-          <div className="text-3xl font-extrabold text-gray-900">{partyMPs.length}</div>
-          <div className="text-sm text-gray-500 mt-1">representanter</div>
+        <div className="bg-gray-50 rounded-lg p-4 text-center">
+          <div className="text-2xl font-extrabold text-gray-900">{partyMPs.length}</div>
+          <div className="text-xs text-gray-500 mt-1">representanter</div>
+        </div>
+        <div className="bg-gray-50 rounded-lg p-4 text-center">
+          <div className="text-2xl font-extrabold text-gray-900">{sakerFremmet}</div>
+          <div className="text-xs text-gray-500 mt-1">saker fremmet</div>
         </div>
       </div>
 

@@ -1,18 +1,24 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getCommittees, getCurrentSessionId, getCases } from '@/lib/stortinget'
+import { getCommittees, getCurrentSessionId, getCases, getDagensRepresentanter } from '@/lib/stortinget'
+import { MPPhoto } from '@/components/MPPhoto'
 
 export const revalidate = 3600
 
 export default async function KomiteDetailPage({ params }: { params: { id: string } }) {
   const sessionId = await getCurrentSessionId()
-  const [committees, cases] = await Promise.all([
+  const [committees, cases, dagensReps] = await Promise.all([
     getCommittees(sessionId),
     getCases(sessionId),
+    getDagensRepresentanter(),
   ])
 
   const committee = committees.find(c => c.id === params.id)
   if (!committee) notFound()
+
+  const members = dagensReps.filter(r =>
+    r.committees.some(k => k.id === params.id)
+  )
 
   const committeeCases = cases
     .filter(c => c.committee === committee.name)
@@ -48,6 +54,37 @@ export default async function KomiteDetailPage({ params }: { params: { id: strin
           )}
         </div>
       </div>
+
+      {/* Committee members */}
+      {members.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+            Medlemmer ({members.length})
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {members.map(mp => (
+              <Link
+                key={mp.id}
+                href={`/representanter/${mp.id}`}
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition"
+              >
+                <MPPhoto
+                  src={`/api/photo?id=${mp.id}`}
+                  name={`${mp.firstName} ${mp.lastName}`}
+                  className="w-10 h-10 rounded-full object-cover bg-gray-100 flex-shrink-0"
+                  size={40}
+                />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-gray-800 leading-tight truncate">
+                    {mp.firstName} {mp.lastName}
+                  </p>
+                  <p className="text-xs text-gray-400 truncate">{mp.party}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {activeCases.length > 0 && (
         <section className="mb-8">

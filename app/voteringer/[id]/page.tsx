@@ -5,6 +5,18 @@ import { VotePartyExpand } from './VotePartyExpand'
 
 export const revalidate = 3600
 
+const PARTY_COLORS: Record<string, string> = {
+  'Arbeiderpartiet': '#d42f2f',
+  'Høyre': '#0065f0',
+  'Fremskrittspartiet': '#024a8c',
+  'Senterpartiet': '#2e8b4a',
+  'Sosialistisk Venstreparti': '#eb3b47',
+  'Rødt': '#8b0000',
+  'Venstre': '#00807a',
+  'Kristelig Folkeparti': '#f5c542',
+  'Miljøpartiet De Grønne': '#6aab25',
+}
+
 export default async function VoteDetailPage({ params }: { params: { id: string } }) {
   let results
   try {
@@ -52,12 +64,14 @@ export default async function VoteDetailPage({ params }: { params: { id: string 
       </div>
 
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-3">
-          <span className={`px-3 py-1 text-sm font-bold rounded ${passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-            {passed ? 'Vedtatt' : 'Falt'}
-          </span>
-        </div>
-        <h1 className="text-2xl font-extrabold text-gray-900">Votering {params.id}</h1>
+        <h1 className="text-2xl font-extrabold text-gray-900 mb-2">
+          <span className="text-green-700">{totalFor} For</span>
+          <span className="text-gray-400 mx-2">·</span>
+          <span className="text-red-700">{totalMot} Mot</span>
+          <span className="text-gray-400 mx-2">·</span>
+          <span className={passed ? 'text-green-700' : 'text-red-700'}>{passed ? 'Vedtatt' : 'Falt'}</span>
+        </h1>
+        <p className="text-sm text-gray-400">Votering {params.id}</p>
       </div>
 
       {/* Result bar */}
@@ -93,10 +107,10 @@ export default async function VoteDetailPage({ params }: { params: { id: string 
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-100">
-                <th className="text-left py-2 font-medium">Parti</th>
+                <th className="text-left py-2 font-medium" colSpan={2}>Parti</th>
                 <th className="text-right py-2 font-medium text-green-700">For</th>
                 <th className="text-right py-2 font-medium text-red-700">Mot</th>
-                <th className="text-right py-2 font-medium text-gray-400">Ikke tilstede</th>
+                <th className="text-right py-2 font-medium text-gray-400">Ikke møtt</th>
                 <th className="text-right py-2 font-medium">Samstemthet</th>
               </tr>
             </thead>
@@ -111,6 +125,9 @@ export default async function VoteDetailPage({ params }: { params: { id: string 
 
                 return (
                   <tr key={party} className="border-b border-gray-50 last:border-0">
+                    <td className="py-2 pr-2 w-3">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PARTY_COLORS[party] || '#666666' }} />
+                    </td>
                     <td className="py-2 font-medium text-gray-800">{party}</td>
                     <td className="py-2 text-right text-green-700 font-medium">{counts.for || '—'}</td>
                     <td className="py-2 text-right text-red-700 font-medium">{counts.mot || '—'}</td>

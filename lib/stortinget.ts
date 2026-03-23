@@ -199,6 +199,34 @@ export async function getCommitteeMembers(committeeId: string, sessionId: string
   }
 }
 
+export interface DagensRepresentant {
+  id: string
+  firstName: string
+  lastName: string
+  party: string
+  county: string
+  committees: { id: string; name: string }[]
+}
+
+export async function getDagensRepresentanter(): Promise<DagensRepresentant[]> {
+  try {
+    const data = await fetchJSON('dagensrepresentanter')
+    return (data.dagensrepresentanter_liste || []).map((r: any) => ({
+      id: r.id,
+      firstName: r.fornavn || '',
+      lastName: r.etternavn || '',
+      party: r.parti?.navn || '',
+      county: r.fylke?.navn || '',
+      committees: (r.komiteer_liste || []).map((k: any) => ({
+        id: k.id,
+        name: k.navn,
+      })),
+    }))
+  } catch {
+    return []
+  }
+}
+
 // Get recent votes — fetches votes for recent treated cases (direct session endpoint not supported by API)
 export async function getRecentVotes(sessionId: string, limit = 50): Promise<{ vote: Vote; caseTitle: string; caseId: string }[]> {
   let cases = await getCases(sessionId)

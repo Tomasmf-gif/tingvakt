@@ -55,6 +55,14 @@ export default async function HomePage() {
     announced: cases.filter(c => c.status === 'varslet').length,
   }
 
+  const thisWeek = cases
+    .filter(c => {
+      const daysDiff = (Date.now() - c.lastUpdated.getTime()) / (1000 * 60 * 60 * 24)
+      return daysDiff <= 7
+    })
+    .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
+    .slice(0, 5)
+
   const todayNorwegian = new Date().toLocaleDateString('nb-NO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
   return (
@@ -69,6 +77,28 @@ export default async function HomePage() {
         </p>
         <p className="text-sm text-gray-400 capitalize">{todayNorwegian}</p>
       </div>
+
+      {/* Denne uken */}
+      {thisWeek.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Denne uken 🗓️</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+            {thisWeek.map(c => {
+              const daysDiff = Math.floor((Date.now() - c.lastUpdated.getTime()) / (1000 * 60 * 60 * 24))
+              return (
+                <Link
+                  key={c.id}
+                  href={`/saker/${c.id}`}
+                  className="flex-shrink-0 w-48 bg-white border border-gray-200 rounded-lg p-3 hover:border-blue-200 hover:shadow-sm transition"
+                >
+                  <p className="text-xs text-gray-400 mb-1">{daysDiff === 0 ? 'I dag' : `${daysDiff} dag${daysDiff === 1 ? '' : 'er'} siden`}</p>
+                  <p className="text-xs font-semibold text-gray-800 leading-snug line-clamp-3">{c.shortTitle || c.title}</p>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main column */}
@@ -93,8 +123,12 @@ export default async function HomePage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="inline-block px-2 py-0.5 text-xs font-bold rounded bg-green-100 text-green-800">
-                          Vedtatt
+                        <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${
+                          c.status === 'behandlet' ? 'bg-green-100 text-green-800' :
+                          c.status === 'til_behandling' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {statusLabel(c.status)}
                         </span>
                         <span className="text-xs text-gray-400">
                           {formatShortDate(c.lastUpdated)}

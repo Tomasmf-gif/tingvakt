@@ -58,7 +58,7 @@ export default async function HomePage() {
   const thisWeek = cases
     .filter(c => {
       const daysDiff = (Date.now() - c.lastUpdated.getTime()) / (1000 * 60 * 60 * 24)
-      return daysDiff <= 7
+      return daysDiff <= 30
     })
     .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
     .slice(0, 5)
@@ -81,7 +81,7 @@ export default async function HomePage() {
       {/* Denne uken */}
       {thisWeek.length > 0 && (
         <section className="mb-8">
-          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Denne uken</h2>
+          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Siste 30 dager</h2>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
             {thisWeek.map(c => (
               <Link href={`/saker/${c.id}`} key={c.id}

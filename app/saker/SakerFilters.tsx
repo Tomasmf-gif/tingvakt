@@ -62,7 +62,7 @@ export function SakerFilters({ committees, currentStatus, currentType, currentCo
       >
         <option value="">Alle komiteer</option>
         {committees
-          .filter(c => !c.toLowerCase().includes('korona') && !c.toLowerCase().includes('særskilt'))
+          .filter(c => !c.toLowerCase().includes('korona') && !c.toLowerCase().includes('særskilt') && !c.toLowerCase().includes('fullmakt'))
           .map(c => (
             <option key={c} value={c}>{c}</option>
           ))}

@@ -33,14 +33,14 @@ export function SokClient({ cases }: Props) {
 
   // "/" keyboard shortcut to focus search
   useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === '/' && document.activeElement !== inputRef.current) {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "/" && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
         e.preventDefault()
         inputRef.current?.focus()
       }
     }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
   }, [])
 
   const results = useMemo(() => {

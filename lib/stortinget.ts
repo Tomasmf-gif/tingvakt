@@ -123,6 +123,27 @@ export async function getVotesForCase(caseId: string): Promise<Vote[]> {
   }
 }
 
+export async function getVoteById(voteId: string): Promise<Vote | null> {
+  try {
+    const data = await fetchJSON('voteringer', { voteringid: voteId })
+    const v = (data.sak_votering_liste || [])[0]
+    if (!v) return null
+    return {
+      id: v.votering_id,
+      caseId: String(v.sak_id || ''),
+      topic: v.votering_tema || '',
+      passed: v.vedtatt === true,
+      method: v.votering_metode || 'elektronisk',
+      votesFor: Math.max(0, v.antall_for ?? 0),
+      votesAgainst: Math.max(0, v.antall_mot ?? 0),
+      absent: Math.max(0, v.antall_ikke_tilstede ?? 0),
+      date: parseDate(v.votering_tid || v.dato || null),
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function getVoteResult(voteId: string): Promise<VoteResult[]> {
   try {
     const data = await fetchJSON('voteringsresultat', { voteringid: voteId })

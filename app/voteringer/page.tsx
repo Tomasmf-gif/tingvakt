@@ -18,7 +18,7 @@ export default async function VoteringerPage() {
   try {
   const sessionId = await getCurrentSessionId()
   const recentVotes = await getRecentVotes(sessionId, 60)
-  const grouped = groupByDate(recentVotes)
+  const grouped = groupByDate(recentVotes.filter(({ vote }) => vote.votesFor > 0 || vote.votesAgainst > 0))
 
   return (
     <div>

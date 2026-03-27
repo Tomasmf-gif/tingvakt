@@ -7,6 +7,7 @@ import { formatShortDate, statusLabel } from '@/lib/utils'
 
 interface Props {
   cases: Case[]
+  initialQuery?: string
 }
 
 const STATUS_BADGE: Record<string, string> = {
@@ -20,9 +21,9 @@ const STATUS_BADGE: Record<string, string> = {
 
 const STATUS_ORDER = ['til_behandling', 'behandlet', 'mottatt', 'varslet', 'trukket', 'bortfalt']
 
-export function SokClient({ cases }: Props) {
-  const [inputValue, setInputValue] = useState('')
-  const [query, setQuery] = useState('')
+export function SokClient({ cases, initialQuery = '' }: Props) {
+  const [inputValue, setInputValue] = useState(initialQuery)
+  const [query, setQuery] = useState(initialQuery)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Debounce: update query 300ms after user stops typing

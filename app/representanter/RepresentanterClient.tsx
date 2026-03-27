@@ -5,15 +5,16 @@ import Link from 'next/link'
 import { MP } from '@/lib/types'
 
 const PARTY_COLORS: Record<string, string> = {
-  'Arbeiderpartiet': '#d42f2f',
+  'Arbeiderpartiet': '#d40014',
   'Høyre': '#0065f0',
-  'Fremskrittspartiet': '#024a8c',
-  'Senterpartiet': '#2e8b4a',
-  'Sosialistisk Venstreparti': '#eb3b47',
+  'Fremskrittspartiet': '#024c95',
+  'Senterpartiet': '#00843d',
+  'Sosialistisk Venstreparti': '#eb0036',
   'Rødt': '#8b0000',
-  'Venstre': '#00807a',
-  'Kristelig Folkeparti': '#f5c542',
-  'Miljøpartiet De Grønne': '#6aab25',
+  'Venstre': '#007c5c',
+  'Kristelig Folkeparti': '#f7a900',
+  'Miljøpartiet De Grønne': '#4c9c2e',
+  'Pensjonistpartiet': '#ff8c00',
 }
 
 interface Props {

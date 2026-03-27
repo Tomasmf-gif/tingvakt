@@ -245,16 +245,17 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
         </div>
       )}
 
-      {/* External link */}
+      {/* Prominent Stortinget CTA */}
       <div className="mt-8 pt-6 border-t border-gray-200">
         <a
           href={`https://www.stortinget.no/no/Saker-og-publikasjoner/Saker/Sak/?p=${params.id}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition shadow-sm"
         >
-          Se på Stortinget.no →
+          Les hele saken på Stortinget.no →
         </a>
+        <p className="text-xs text-gray-400 mt-2">Åpner offisielt dokument på stortinget.no</p>
       </div>
     </div>
   )

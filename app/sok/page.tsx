@@ -3,7 +3,11 @@ import { SokClient } from './SokClient'
 
 export const revalidate = 900
 
-export default async function SokPage() {
+export default async function SokPage({
+  searchParams,
+}: {
+  searchParams: { q?: string }
+}) {
   try {
   const sessionId = await getCurrentSessionId()
   const cases = await getCases(sessionId)
@@ -15,7 +19,7 @@ export default async function SokPage() {
         <p className="text-gray-500">Søk blant {cases.length} saker i sesjon {sessionId}</p>
       </div>
 
-      <SokClient cases={cases} />
+      <SokClient cases={cases} initialQuery={searchParams.q || ''} />
     </div>
   )
   } catch {

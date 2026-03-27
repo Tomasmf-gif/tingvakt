@@ -6,15 +6,16 @@ import { VotePartyExpand } from './VotePartyExpand'
 export const revalidate = 3600
 
 const PARTY_COLORS: Record<string, string> = {
-  'A': '#d42f2f',
+  'A': '#d40014',
   'H': '#0065f0',
-  'FrP': '#024a8c',
-  'SP': '#2e8b4a',
-  'SV': '#eb3b47',
+  'FrP': '#024c95',
+  'SP': '#00843d',
+  'SV': '#eb0036',
   'R': '#8b0000',
-  'V': '#00807a',
-  'KrF': '#f5c542',
-  'MDG': '#6aab25',
+  'V': '#007c5c',
+  'KrF': '#f7a900',
+  'MDG': '#4c9c2e',
+  'PF': '#ff8c00',
 }
 
 const PARTY_SHORT: Record<string, string> = {
